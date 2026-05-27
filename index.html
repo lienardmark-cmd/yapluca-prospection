@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Yapluca · V3 Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rouge: #e63946;
+  --noir: #0d0d0d;
+  --fond: #f4f1ec;
+  --carte: #ffffff;
+  --gris: #888;
+  --bordure: #e8e3da;
+  --vert: #2d6a4f;
+  --orange: #e07800;
+  --bleu: #1d6fa4;
+  --violet: #6b3fa0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', sans-serif; background: var(--fond); color: var(--noir); min-height: 100vh; }
+
+/* TABS */
+.tabs { display: flex; background: var(--noir); border-bottom: 2px solid var(--rouge); position: sticky; top: 0; z-index: 200; }
+.tab { flex: 1; padding: 11px 4px; text-align: center; font-size: 10px; font-weight: 600; color: #666; cursor: pointer; border: none; background: none; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.3px; }
+.tab.active { color: var(--rouge); border-bottom: 2px solid var(--rouge); margin-bottom: -2px; }
+.tab-badge { display: inline-block; background: var(--rouge); color: #fff; border-radius: 99px; font-size: 9px; padding: 1px 5px; margin-left: 3px; }
+
+/* HEADER */
+header { background: var(--noir); color: #fff; padding: 10px 16px 8px; }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.logo { font-family: 'DM Serif Display', serif; font-size: 19px; color: #fff; }
+.logo span { color: var(--rouge); }
+.total-pill { font-family: 'DM Mono', monospace; font-size: 11px; color: #aaa; margin-top: 3px; }
+.total-pill strong { color: var(--rouge); font-size: 14px; }
+
+/* FILTRES */
+.filtres { background: #fff; padding: 10px 14px; border-bottom: 1px solid var(--bordure); display: flex; flex-direction: column; gap: 8px; }
+.search-row { display: flex; gap: 8px; }
+input[type=text], input[type=number] { flex: 1; padding: 9px 11px; border: 1.5px solid var(--bordure); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; background: var(--fond); color: var(--noir); -webkit-appearance: none; }
+input:focus { outline: none; border-color: var(--rouge); }
+.btn { padding: 9px 13px; border-radius: 8px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-rouge { background: var(--rouge); color: #fff; }
+.btn-noir { background: var(--noir); color: #fff; }
+.btn-vert { background: var(--vert); color: #fff; }
+.btn-bleu { background: var(--bleu); color: #fff; }
+.btn-outline { background: #fff; color: var(--noir); border: 1.5px solid var(--bordure); }
+.selects-row { display: flex; gap: 8px; }
+select { flex: 1; padding: 9px 10px; border: 1.5px solid var(--bordure); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--fond); color: var(--noir); -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+select:focus { outline: none; border-color: var(--rouge); }
+.rayon-row { display: flex; gap: 8px; align-items: center; }
+
+/* SCORE */
+.score-bar { height: 5px; border-radius: 99px; background: #eee; margin-top: 5px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 99px; }
+.score-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gris); }
+
+/* LOADING */
+.loading { text-align: center; padding: 48px 16px; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--gris); }
+.spinner { display: inline-block; width: 26px; height: 26px; border: 3px solid #eee; border-top-color: var(--rouge); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* CARTES */
+.liste { padding: 10px 12px 100px; display: flex; flex-direction: column; gap: 9px; }
+.carte { background: var(--carte); border-radius: 12px; padding: 13px; border: 1px solid var(--bordure); cursor: pointer; }
+.carte.open { border-color: var(--rouge); box-shadow: 0 2px 14px rgba(230,57,70,0.12); }
+.carte-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.nom { font-weight: 600; font-size: 14px; line-height: 1.3; flex: 1; }
+.carte-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.tag { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 99px; background: var(--fond); border: 1px solid var(--bordure); color: #555; }
+.tag.rouge { background: #fff0f0; border-color: #fcc; color: #c00; }
+.tag.vert { background: #f0fff4; border-color: #b7ebc8; color: var(--vert); }
+.tag.orange { background: #fff7ed; border-color: #fcd9a0; color: var(--orange); }
+.tag.bleu { background: #e8f4fd; border-color: #b3d9f7; color: var(--bleu); }
+.tag.violet { background: #f3eeff; border-color: #d4b8f7; color: var(--violet); }
+
+/* STATUT */
+.statut-btn { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+.statut-NOUVEAU { background: #f0f0f0; color: #555; }
+.statut-CONTACTE { background: #e8f4fd; color: var(--bleu); }
+.statut-EN_COURS { background: #fff7ed; color: var(--orange); }
+.statut-CONVERTI { background: #f0fff4; color: var(--vert); }
+.statut-SANS_SUITE { background: #fff0f0; color: #c00; }
+
+/* DETAIL */
+.detail { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--bordure); display: flex; flex-direction: column; gap: 12px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.detail-bloc label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; color: var(--gris); display: block; margin-bottom: 3px; letter-spacing: 0.5px; }
+.detail-bloc p { font-size: 12px; line-height: 1.5; }
+.detail-bloc a { color: var(--bleu); text-decoration: none; word-break: break-all; }
+
+/* ENRICHISSEMENT */
+.enrichi-bloc { background: #f8f6ff; border: 1px solid #e0d4f7; border-radius: 10px; padding: 12px; }
+.enrichi-titre { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; color: var(--violet); margin-bottom: 10px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
+.enrichi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.enrichi-item label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; color: var(--gris); display: block; margin-bottom: 2px; }
+.enrichi-item p { font-size: 12px; }
+.enrichi-item a { color: var(--bleu); text-decoration: none; }
+
+/* EMAIL BLOCK */
+.email-bloc { background: #f0fff4; border: 1px solid #b7ebc8; border-radius: 10px; padding: 12px; }
+.email-titre { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; color: var(--vert); margin-bottom: 8px; }
+.email-preview { font-size: 12px; line-height: 1.6; color: #333; white-space: pre-wrap; background: #fff; border: 1px solid var(--bordure); border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto; }
+.email-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+/* SCORE DETAIL */
+.score-detail { background: #fffbf0; border: 1px solid #fcd9a0; border-radius: 10px; padding: 12px; }
+.score-detail-titre { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; color: var(--orange); margin-bottom: 8px; }
+.score-critere { display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-bottom: 4px; }
+.score-critere span { font-family: 'DM Mono', monospace; font-weight: 600; }
+
+/* NOTE */
+.note-area { width: 100%; padding: 8px 10px; border: 1.5px solid var(--bordure); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--fond); resize: none; height: 58px; }
+.note-area:focus { outline: none; border-color: var(--rouge); }
+
+/* STATUT OPTIONS */
+.statut-select-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.statut-opt { padding: 4px 9px; border-radius: 99px; border: 1.5px solid var(--bordure); font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; background: #fff; }
+.statut-opt.sel { border-color: var(--rouge); background: #fff0f0; color: var(--rouge); }
+
+/* ACTIONS */
+.detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.lien-fiche { display: inline-block; padding: 7px 13px; background: var(--noir); color: #fff; text-decoration: none; border-radius: 7px; font-size: 12px; font-weight: 600; }
+
+/* PROSPECTS */
+.prospects-liste { padding: 10px 12px 100px; display: flex; flex-direction: column; gap: 9px; }
+.prospect-card { background: #fff; border-radius: 12px; padding: 13px; border: 1px solid var(--bordure); }
+.prospect-header { display: flex; justify-content: space-between; align-items: center; }
+.prospect-nom { font-weight: 600; font-size: 14px; }
+.prospect-note { font-size: 12px; color: var(--gris); margin-top: 5px; font-style: italic; }
+.prospect-meta { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+
+/* PAGINATION */
+.pagination { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); border-top: 1px solid var(--bordure); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; z-index: 50; }
+.btn-page { padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--bordure); background: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--noir); }
+.btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-page.actif { background: var(--rouge); border-color: var(--rouge); color: #fff; }
+.page-info { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gris); text-align: center; }
+
+/* ERREUR */
+.erreur { margin: 16px; background: #fff0f0; border: 1px solid var(--rouge); border-radius: 10px; padding: 13px; font-size: 13px; color: #c00; }
+.vide { text-align: center; padding: 48px 16px; color: var(--gris); font-size: 14px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--noir); color: #fff; padding: 9px 20px; border-radius: 99px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+.section { display: none; }
+.section.active { display: block; }
+
+/* QUOTA */
+.quota-bar { height: 3px; background: #eee; border-radius: 99px; overflow: hidden; margin-top: 3px; }
+.quota-fill { height: 100%; background: var(--vert); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('recherche', this)">🔍 Recherche</button>
+  <button class="tab" onclick="switchTab('prospects', this)">📋 Prospects <span class="tab-badge" id="badgeCount">0</span></button>
+</div>
+
+<!-- RECHERCHE -->
+<div class="section active" id="section-recherche">
+  <header>
+    <div class="header-top">
+      <div class="logo">🎯 Yapluca <span>·</span> V3</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-vert" onclick="exportCSV()" style="font-size:11px;padding:6px 10px">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="total-pill" id="totalPill">Chargement…</div>
+    <div style="margin-top:4px;display:flex;align-items:center;gap:8px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:#666">PAPPERS <span id="quotaTexte">500/j</span></div>
+      <div class="quota-bar" style="flex:1;max-width:80px"><div class="quota-fill" id="quotaFill" style="width:100%"></div></div>
+    </div>
+  </header>
+
+  <div class="filtres">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Nom, ville, activité…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="btn btn-rouge" onclick="lancerRecherche()">🔍</button>
+    </div>
+    <div class="selects-row">
+      <select id="secteurSelect" onchange="lancerRecherche()">
+        <option value="">Tous secteurs</option>
+        <option value="F">BTP / Construction</option>
+        <option value="G">Commerce / Restauration</option>
+        <option value="M">Services spécialisés</option>
+        <option value="C">Industrie</option>
+        <option value="H">Transport</option>
+        <option value="J">Info / Communication</option>
+        <option value="L">Immobilier</option>
+        <option value="N">Services admin.</option>
+        <option value="Q">Santé</option>
+      </select>
+      <select id="tailleSelect" onchange="lancerRecherche()">
+        <option value="">Toutes tailles</option>
+        <option value="00">0 sal. (solo)</option>
+        <option value="01">1–9 sal. (TPE)</option>
+        <option value="11">10–19 sal.</option>
+        <option value="12">20–49 sal.</option>
+      </select>
+    </div>
+    <div class="rayon-row">
+      <input type="text" id="villeInput" placeholder="🏙 Ville (ex: Mâcon)">
+      <input type="number" id="rayonInput" placeholder="km" min="1" max="100" value="20" style="max-width:65px">
+      <button class="btn btn-noir" onclick="rechercheRayon()">📍</button>
+    </div>
+  </div>
+
+  <div id="contenu-recherche"></div>
+
+  <div class="pagination" id="pagination" style="display:none">
+    <button class="btn-page" id="btnPrev" onclick="changerPage(-1)">← Préc.</button>
+    <div class="page-info" id="pageInfo"></div>
+    <button class="btn-page actif" id="btnSuiv" onclick="changerPage(1)">Suiv. →</button>
+  </div>
+</div>
+
+<!-- PROSPECTS -->
+<div class="section" id="section-prospects">
+  <header>
+    <div class="header-top">
+      <div class="logo">📋 Mes <span>Prospects</span></div>
+      <button class="btn btn-vert" onclick="exportProspectsCSV()" style="font-size:11px;padding:6px 10px">⬇ CSV</button>
+    </div>
+    <div class="total-pill" id="prospectsResume">—</div>
+  </header>
+  <div style="padding:10px 14px;background:#fff;border-bottom:1px solid var(--bordure);display:flex;gap:8px">
+    <select id="filtreStatut" onchange="afficherProspects()">
+      <option value="">Tous statuts</option>
+      <option value="CONTACTE">Contacté</option>
+      <option value="EN_COURS">En cours</option>
+      <option value="CONVERTI">Converti ✅</option>
+      <option value="SANS_SUITE">Sans suite</option>
+    </select>
+  </div>
+  <div id="contenu-prospects" class="prospects-liste"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== CONFIG =====
+const PAPPERS_KEY = '2f03bd66f50acf715cec1ee61cff3cfdffd5b649f72040a3';
+const API_INSEE = 'https://recherche-entreprises.api.gouv.fr/search';
+const API_PAPPERS = 'https://api.pappers.fr/v2/entreprise';
+const API_GEO = 'https://api-adresse.data.gouv.fr/search/';
+
+const PRIORITE = {
+  F: { label: '🔴 Priorité 1', cls: 'rouge', score: 85 },
+  G: { label: '🔴 Priorité 1', cls: 'rouge', score: 80 },
+  M: { label: '🟠 Priorité 2', cls: 'orange', score: 65 },
+  C: { label: '🟠 Priorité 2', cls: 'orange', score: 62 },
+  H: { label: '🟠 Priorité 2', cls: 'orange', score: 58 },
+  N: { label: '🟠 Priorité 2', cls: 'orange', score: 55 },
+  J: { label: '🟡 Priorité 3', cls: '', score: 42 },
+  L: { label: '🟡 Priorité 3', cls: '', score: 38 },
+  Q: { label: '⚪ Hors cible', cls: '', score: 10 },
+};
+const SECTION_LABEL = { F:'BTP', G:'Commerce', M:'Services', C:'Industrie', H:'Transport', J:'Info/Com', L:'Immobilier', N:'Serv.admin', Q:'Santé', A:'Agriculture', I:'Hébergement', K:'Finance', O:'Admin', P:'Enseignement', R:'Arts', S:'Autres' };
+const STATUTS = { NOUVEAU:'🆕 Nouveau', CONTACTE:'📞 Contacté', EN_COURS:'⏳ En cours', CONVERTI:'✅ Converti', SANS_SUITE:'❌ Sans suite' };
+
+// ===== STATE =====
+let pageCourante = 1, totalPages = 1;
+let derniersResultats = [];
+let coordsVille = null;
+let quotaRestant = 500;
+let cacheEnrichissement = {};
+
+// ===== STORAGE =====
+function getProspects() { try { return JSON.parse(localStorage.getItem('yapluca_v3_prospects') || '{}'); } catch(e) { return {}; } }
+function saveProspects(p) { localStorage.setItem('yapluca_v3_prospects', JSON.stringify(p)); updateBadge(); }
+function getProspect(siren) { return getProspects()[siren] || { statut: 'NOUVEAU', note: '' }; }
+function setProspect(siren, data) { const p = getProspects(); p[siren] = { ...getProspect(siren), ...data }; saveProspects(p); }
+function updateBadge() {
+  const actifs = Object.values(getProspects()).filter(x => x.statut && x.statut !== 'NOUVEAU').length;
+  document.getElementById('badgeCount').textContent = actifs;
+}
+
+// ===== TABS =====
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('section-' + tab).classList.add('active');
+  if (tab === 'prospects') afficherProspects();
+}
+
+// ===== SCORING V3 (7 critères) =====
+function calculerScore(e, pappers) {
+  const section = (e.activite_principale || '').charAt(0);
+  const base = (PRIORITE[section] || { score: 30 }).score;
+  let score = base;
+  let details = [{ label: 'Secteur NAF', val: base, max: 85 }];
+
+  // Taille
+  const tr = e.tranche_effectif_salarie || '';
+  const bonusTaille = { '01': 15, '11': 18, '12': 10, '00': -5 }[tr] || 0;
+  score += bonusTaille;
+  details.push({ label: 'Effectif', val: bonusTaille, max: 18 });
+
+  // Âge
+  const annee = parseInt((e.date_creation || '2015').slice(0, 4));
+  const age = 2025 - annee;
+  const bonusAge = age >= 3 && age <= 15 ? 10 : age > 15 ? 5 : 0;
+  score += bonusAge;
+  details.push({ label: 'Ancienneté', val: bonusAge, max: 10 });
+
+  if (pappers) {
+    // Dirigeant identifié
+    const hasDirig = pappers.dirigeants?.length > 0;
+    score += hasDirig ? 8 : 0;
+    details.push({ label: 'Dirigeant identifié', val: hasDirig ? 8 : 0, max: 8 });
+
+    // Email disponible
+    const hasEmail = !!(pappers.email || (pappers.dirigeants || []).find(d => d.email));
+    score += hasEmail ? 12 : 0;
+    details.push({ label: 'Email trouvé', val: hasEmail ? 12 : 0, max: 12 });
+
+    // Site web
+    const hasWeb = !!(pappers.site_web);
+    score += hasWeb ? 5 : 0;
+    details.push({ label: 'Site web', val: hasWeb ? 5 : 0, max: 5 });
+
+    // Pas en difficulté
+    const enDiff = pappers.procedures_collectives?.length > 0;
+    score -= enDiff ? 30 : 0;
+    if (enDiff) details.push({ label: '⚠️ Proc. collective', val: -30, max: 0 });
+  }
+
+  return { score: Math.min(100, Math.max(0, score)), details };
+}
+
+function scoreColor(s) {
+  if (s >= 75) return '#e63946';
+  if (s >= 55) return '#e07800';
+  if (s >= 35) return '#f0b429';
+  return '#aaa';
+}
+
+// ===== PAPPERS ENRICHISSEMENT =====
+async function enrichirPappers(siren) {
+  if (cacheEnrichissement[siren]) return cacheEnrichissement[siren];
+  try {
+    const res = await fetch(`${API_PAPPERS}?siren=${siren}&api_token=${PAPPERS_KEY}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    cacheEnrichissement[siren] = data;
+    // Quota
+    const remaining = res.headers.get('X-Ratelimit-Remaining');
+    if (remaining) {
+      quotaRestant = parseInt(remaining);
+      const pct = (quotaRestant / 500) * 100;
+      document.getElementById('quotaTexte').textContent = quotaRestant + '/j';
+      document.getElementById('quotaFill').style.width = pct + '%';
+      document.getElementById('quotaFill').style.background = pct > 30 ? 'var(--vert)' : 'var(--rouge)';
+    }
+    return data;
+  } catch(e) { return null; }
+}
+
+// ===== TEMPLATE EMAIL =====
+function genererEmail(e, pappers) {
+  const nom = e.nom_complet || e.nom_raison_sociale || 'votre entreprise';
+  const section = (e.activite_principale || '').charAt(0);
+  const sectionLabel = SECTION_LABEL[section] || 'votre secteur';
+  const ville = e.siege?.libelle_commune || '';
+  const dirigeant = pappers?.dirigeants?.[0];
+  const prenomDirig = dirigeant?.prenom || '';
+  const civilite = dirigeant ? `Bonjour ${prenomDirig || 'Madame/Monsieur'},` : 'Bonjour,';
+
+  return `Objet : Facture électronique 2026 — Êtes-vous prêt(e) ?
+
+${civilite}
+
+Je me permets de vous contacter au sujet de la réforme de la facturation électronique, qui s'appliquera à ${nom} dès 2027.
+
+À partir de cette date, toutes les entreprises comme la vôtre (${sectionLabel}${ville ? ' à '+ville : ''}) devront émettre et recevoir leurs factures via une plateforme agréée.
+
+Chez Yapluca, nous accompagnons les TPE/PME de Saône-et-Loire pour mettre en place cette solution simplement, sans contrainte technique.
+
+✅ Mise en conformité rapide
+✅ Tarif adapté aux petites structures
+✅ Accompagnement local
+
+Seriez-vous disponible pour un rapide échange de 15 minutes cette semaine ?
+
+Bien cordialement,
+[Votre nom]
+Yapluca · yapluca.fr`;
+}
+
+// ===== RECHERCHE =====
+function lancerRecherche() { pageCourante = 1; coordsVille = null; charger(); }
+
+async function rechercheRayon() {
+  const ville = document.getElementById('villeInput').value.trim();
+  if (!ville) { showToast('Entrez une ville'); return; }
+  showToast('📍 Géolocalisation…');
+  try {
+    const res = await fetch(`${API_GEO}?q=${encodeURIComponent(ville)}&type=municipality&limit=1`);
+    const data = await res.json();
+    if (!data.features?.length) { showToast('Ville introuvable'); return; }
+    const [lng, lat] = data.features[0].geometry.coordinates;
+    coordsVille = { lat, lng, rayon: parseInt(document.getElementById('rayonInput').value) || 20 };
+    pageCourante = 1;
+    charger();
+  } catch(e) { showToast('Erreur géolocalisation'); }
+}
+
+async function charger() {
+  const q = document.getElementById('searchInput').value.trim();
+  const secteur = document.getElementById('secteurSelect').value;
+  const taille = document.getElementById('tailleSelect').value;
+
+  const p = new URLSearchParams({ departement: '71', etat_administratif: 'A', per_page: '20', page: pageCourante });
+  if (secteur) p.append('section_activite_principale', secteur);
+  if (taille) p.append('tranche_effectif_salarie', taille);
+  if (q) p.append('q', q);
+  if (coordsVille) { p.append('lat', coordsVille.lat); p.append('long', coordsVille.lng); p.append('radius', coordsVille.rayon * 1000); }
+
+  document.getElementById('contenu-recherche').innerHTML = '<div class="loading"><div class="spinner"></div><br>Chargement INSEE…</div>';
+  document.getElementById('pagination').style.display = 'none';
+
+  try {
+    const res = await fetch(`${API_INSEE}?${p}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    totalPages = data.total_pages || 1;
+    derniersResultats = data.results || [];
+    afficherResultats(data);
+  } catch(e) {
+    document.getElementById('contenu-recherche').innerHTML = `<div class="erreur">⚠️ ${e.message}<br><small>Vérifiez votre connexion.</small></div>`;
+  }
+}
+
+function afficherResultats(data) {
+  const total = (data.total_results || 0).toLocaleString('fr-FR');
+  document.getElementById('totalPill').innerHTML = `<strong>${total}</strong> entreprises actives trouvées`;
+
+  if (!data.results?.length) {
+    document.getElementById('contenu-recherche').innerHTML = '<div class="vide">Aucun résultat.</div>';
+    return;
+  }
+
+  const liste = document.createElement('div');
+  liste.className = 'liste';
+  data.results.forEach((e, i) => liste.appendChild(creerCarte(e, i)));
+
+  document.getElementById('contenu-recherche').innerHTML = '';
+  document.getElementById('contenu-recherche').appendChild(liste);
+
+  document.getElementById('pagination').style.display = 'flex';
+  document.getElementById('pageInfo').textContent = `Page ${pageCourante} / ${totalPages.toLocaleString('fr-FR')}`;
+  document.getElementById('btnPrev').disabled = pageCourante <= 1;
+  document.getElementById('btnSuiv').disabled = pageCourante >= totalPages;
+}
+
+function creerCarte(e, i) {
+  const siege = e.siege || {};
+  const section = (e.activite_principale || '').charAt(0);
+  const prio = PRIORITE[section] || { label: '🟡 À évaluer', cls: '', score: 30 };
+  const { score } = calculerScore(e, null);
+  const prospect = getProspect(e.siren);
+  const ville = siege.libelle_commune || '—';
+  const cp = siege.code_postal || '';
+  const annee = (e.date_creation || '').slice(0,4) || '—';
+  const nom = e.nom_complet || e.nom_raison_sociale || '—';
+
+  const carte = document.createElement('div');
+  carte.className = 'carte';
+  carte.id = `carte-${i}`;
+  carte.innerHTML = `
+    <div class="carte-top" onclick="toggleDetail(${i}, '${e.siren}')">
+      <div style="flex:1">
+        <div class="nom">${nom}</div>
+        <div class="score-label">${score}% match</div>
+        <div class="score-bar"><div class="score-fill" style="width:${score}%;background:${scoreColor(score)}"></div></div>
+      </div>
+      <span class="statut-btn statut-${prospect.statut || 'NOUVEAU'}">${STATUTS[prospect.statut || 'NOUVEAU']}</span>
+    </div>
+    <div class="carte-meta" onclick="toggleDetail(${i}, '${e.siren}')">
+      <span class="tag">${ville}${cp ? ' · '+cp : ''}</span>
+      <span class="tag ${prio.cls}">${e.activite_principale || '—'}</span>
+      <span class="tag">${annee}</span>
+      <span class="tag ${prio.cls}">${prio.label}</span>
+    </div>
+    <div class="detail" id="detail-${i}" style="display:none">
+      <!-- Données INSEE -->
+      <div class="detail-grid">
+        <div class="detail-bloc"><label>SIREN</label><p style="font-family:'DM Mono',monospace">${e.siren}</p></div>
+        <div class="detail-bloc"><label>SIRET siège</label><p style="font-family:'DM Mono',monospace;font-size:11px">${siege.siret || '—'}</p></div>
+        <div class="detail-bloc"><label>Adresse</label><p>${siege.adresse || '—'}<br>${cp} ${ville}</p></div>
+        <div class="detail-bloc"><label>Activité</label><p>${e.libelle_activite_principale || SECTION_LABEL[section] || '—'}</p></div>
+        <div class="detail-bloc"><label>Forme juridique</label><p>${e.nature_juridique || '—'}</p></div>
+        <div class="detail-bloc"><label>Catégorie</label><p>${e.categorie_entreprise || '—'}</p></div>
+      </div>
+
+      <!-- Enrichissement Pappers -->
+      <div class="enrichi-bloc" id="enrichi-${i}">
+        <div class="enrichi-titre">⚡ Pappers — <span id="enrichi-status-${i}">Cliquez pour enrichir</span></div>
+        <button class="btn btn-bleu" onclick="chargerPappers('${e.siren}', ${i})" id="btn-enrichi-${i}" style="font-size:12px;padding:7px 13px">
+          🔍 Enrichir avec Pappers
+        </button>
+        <div id="enrichi-data-${i}" style="display:none"></div>
+      </div>
+
+      <!-- Score détail -->
+      <div class="score-detail" id="score-detail-${i}">
+        <div class="score-detail-titre">📊 Score Yapluca · ${score}%</div>
+        <div id="score-criteres-${i}"></div>
+      </div>
+
+      <!-- Email template -->
+      <div class="email-bloc" id="email-bloc-${i}" style="display:none">
+        <div class="email-titre">✉️ Template email personnalisé</div>
+        <div class="email-preview" id="email-preview-${i}"></div>
+        <div class="email-actions">
+          <button class="btn btn-vert" onclick="copierEmail(${i})" style="font-size:12px;padding:7px 12px">📋 Copier</button>
+          <button class="btn btn-outline" onclick="ouvrirMailto(${i})" style="font-size:12px;padding:7px 12px">✉️ Ouvrir mail</button>
+        </div>
+      </div>
+
+      <!-- Statut & note -->
+      <div>
+        <div style="margin-bottom:5px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--gris)">Statut prospect</div>
+        <div class="statut-select-row" id="statuts-${i}">
+          ${Object.entries(STATUTS).map(([k,v]) => `<button class="statut-opt ${(prospect.statut||'NOUVEAU')===k?'sel':''}" onclick="changerStatut('${e.siren}','${k}',${i})">${v}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="margin-bottom:4px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--gris)">Note</div>
+        <textarea class="note-area" id="note-${i}" placeholder="Ajouter une note…">${prospect.note || ''}</textarea>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn-noir" onclick="sauvegarderNote('${e.siren}',${i})" style="font-size:12px;padding:7px 12px">💾 Sauvegarder</button>
+          <button class="btn btn-rouge" onclick="ajouterProspect('${e.siren}',${i})" style="font-size:12px;padding:7px 12px">➕ Prospects</button>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <a class="lien-fiche" href="https://annuaire-entreprises.data.gouv.fr/entreprise/${e.siren}" target="_blank">📋 Fiche officielle ↗</a>
+      </div>
+    </div>
+  `;
+
+  // Score critères initiaux
+  setTimeout(() => {
+    const { details } = calculerScore(e, null);
+    afficherScoreCriteres(details, i);
+  }, 50);
+
+  return carte;
+}
+
+function afficherScoreCriteres(details, i) {
+  const el = document.getElementById(`score-criteres-${i}`);
+  if (!el) return;
+  el.innerHTML = details.map(d => `
+    <div class="score-critere">
+      <span>${d.label}</span>
+      <span style="color:${d.val > 0 ? 'var(--vert)' : d.val < 0 ? 'var(--rouge)' : 'var(--gris)'}">${d.val > 0 ? '+' : ''}${d.val}</span>
+    </div>
+  `).join('');
+}
+
+async function chargerPappers(siren, i) {
+  const btn = document.getElementById(`btn-enrichi-${i}`);
+  const status = document.getElementById(`enrichi-status-${i}`);
+  const dataEl = document.getElementById(`enrichi-data-${i}`);
+
+  btn.textContent = '⏳ Chargement…';
+  btn.disabled = true;
+  status.textContent = 'Interrogation Pappers…';
+
+  const pappers = await enrichirPappers(siren);
+
+  if (!pappers) {
+    status.textContent = 'Indisponible';
+    btn.textContent = '⚠️ Erreur Pappers';
+    btn.disabled = false;
+    return;
+  }
+
+  // Recalculer score avec Pappers
+  const e = derniersResultats[i];
+  if (e) {
+    const { score, details } = calculerScore(e, pappers);
+    const scoreEl = document.querySelector(`#score-detail-${i} .score-detail-titre`);
+    if (scoreEl) scoreEl.textContent = `📊 Score Yapluca enrichi · ${score}%`;
+    afficherScoreCriteres(details, i);
+    // Mise à jour barre score
+    const fill = document.querySelector(`#carte-${i} .score-fill`);
+    const label = document.querySelector(`#carte-${i} .score-label`);
+    if (fill) { fill.style.width = score + '%'; fill.style.background = scoreColor(score); }
+    if (label) label.textContent = score + '% match (enrichi)';
+  }
+
+  // Dirigeant
+  const dirigeants = pappers.dirigeants || [];
+  const dirig = dirigeants[0];
+
+  // Email — chercher dans dirigeants ou données générales
+  const email = pappers.email || dirigeants.find(d => d.email)?.email || null;
+
+  // Site web
+  const siteWeb = pappers.site_web || null;
+
+  // CA
+  const ca = pappers.chiffre_affaires || pappers.finances?.[0]?.chiffre_affaires;
+  const caFormat = ca ? (ca >= 1000000 ? (ca/1000000).toFixed(1) + ' M€' : (ca/1000).toFixed(0) + ' k€') : null;
+
+  // Nb employés
+  const nbEmp = pappers.effectif || pappers.effectif_max || null;
+
+  btn.style.display = 'none';
+  status.textContent = '✅ Enrichi';
+  dataEl.style.display = 'block';
+  dataEl.innerHTML = `
+    <div class="enrichi-grid" style="margin-top:10px">
+      <div class="enrichi-item">
+        <label>Dirigeant</label>
+        <p>${dirig ? `${dirig.prenom || ''} ${dirig.nom || ''}`.trim() + (dirig.qualite ? ` · ${dirig.qualite}` : '') : '—'}</p>
+      </div>
+      <div class="enrichi-item">
+        <label>Email</label>
+        <p>${email ? `<a href="mailto:${email}">${email}</a>` : '<span style="color:var(--gris)">Non disponible</span>'}</p>
+      </div>
+      <div class="enrichi-item">
+        <label>Site web</label>
+        <p>${siteWeb ? `<a href="${siteWeb.startsWith('http') ? siteWeb : 'https://'+siteWeb}" target="_blank">${siteWeb}</a>` : '<span style="color:var(--gris)">Non renseigné</span>'}</p>
+      </div>
+      <div class="enrichi-item">
+        <label>Chiffre d'affaires</label>
+        <p>${caFormat || '—'}</p>
+      </div>
+      <div class="enrichi-item">
+        <label>Effectif réel</label>
+        <p>${nbEmp ? nbEmp + ' sal.' : '—'}</p>
+      </div>
+      <div class="enrichi-item">
+        <label>Procédure collective</label>
+        <p>${pappers.procedures_collectives?.length > 0 ? '⚠️ Oui' : '✅ Aucune'}</p>
+      </div>
+    </div>
+  `;
+
+  // Template email
+  const emailBloc = document.getElementById(`email-bloc-${i}`);
+  const emailPreview = document.getElementById(`email-preview-${i}`);
+  if (emailBloc && emailPreview) {
+    const template = genererEmail(e, pappers);
+    emailPreview.textContent = template;
+    emailBloc.style.display = 'block';
+    emailBloc._template = template;
+    emailBloc._email = email;
+  }
+
+  // Sauvegarder enrichissement dans prospect si déjà ajouté
+  const prospects = getProspects();
+  if (prospects[siren]) {
+    setProspect(siren, {
+      email: email || '',
+      siteWeb: siteWeb || '',
+      dirigeant: dirig ? `${dirig.prenom || ''} ${dirig.nom || ''}`.trim() : '',
+      ca: caFormat || ''
+    });
+  }
+}
+
+function copierEmail(i) {
+  const bloc = document.getElementById(`email-bloc-${i}`);
+  if (!bloc?._template) return;
+  navigator.clipboard.writeText(bloc._template).then(() => showToast('✅ Email copié !'));
+}
+
+function ouvrirMailto(i) {
+  const bloc = document.getElementById(`email-bloc-${i}`);
+  if (!bloc) return;
+  const email = bloc._email || '';
+  const sujet = encodeURIComponent('Facture électronique 2026 — Êtes-vous prêt(e) ?');
+  const corps = encodeURIComponent((bloc._template || '').split('\n').slice(2).join('\n'));
+  window.open(`mailto:${email}?subject=${sujet}&body=${corps}`);
+}
+
+async function toggleDetail(i, siren) {
+  const det = document.getElementById(`detail-${i}`);
+  const carte = document.getElementById(`carte-${i}`);
+  const estOuvert = det.style.display !== 'none';
+
+  document.querySelectorAll('.detail').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.carte').forEach(c => c.classList.remove('open'));
+
+  if (!estOuvert) {
+    det.style.display = 'flex';
+    carte.classList.add('open');
+    carte.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function changerStatut(siren, statut, i) {
+  setProspect(siren, { statut, ajouteLe: new Date().toISOString() });
+  document.getElementById(`statuts-${i}`)?.querySelectorAll('.statut-opt').forEach(btn => {
+    btn.classList.toggle('sel', btn.textContent === STATUTS[statut]);
+  });
+  const badge = document.querySelector(`#carte-${i} .statut-btn`);
+  if (badge) { badge.className = `statut-btn statut-${statut}`; badge.textContent = STATUTS[statut]; }
+  showToast('Statut mis à jour');
+}
+
+function sauvegarderNote(siren, i) {
+  setProspect(siren, { note: document.getElementById(`note-${i}`).value });
+  showToast('Note sauvegardée ✓');
+}
+
+function ajouterProspect(siren, i) {
+  const e = derniersResultats[i];
+  if (!e) return;
+  const pappers = cacheEnrichissement[siren];
+  const dirigeant = pappers?.dirigeants?.[0];
+  setProspect(siren, {
+    statut: 'CONTACTE',
+    nom: e.nom_complet || e.nom_raison_sociale,
+    ville: e.siege?.libelle_commune,
+    naf: e.activite_principale,
+    score: calculerScore(e, pappers).score,
+    email: pappers?.email || dirigeant?.email || '',
+    siteWeb: pappers?.site_web || '',
+    dirigeant: dirigeant ? `${dirigeant.prenom || ''} ${dirigeant.nom || ''}`.trim() : '',
+    ajouteLe: new Date().toISOString()
+  });
+  changerStatut(siren, 'CONTACTE', i);
+  showToast('➕ Ajouté aux prospects');
+}
+
+// ===== PROSPECTS =====
+function afficherProspects() {
+  const filtre = document.getElementById('filtreStatut').value;
+  const p = getProspects();
+  const tous = Object.entries(p).filter(([,v]) => v.nom);
+  const filtres = filtre ? tous.filter(([,v]) => v.statut === filtre) : tous;
+
+  const convertis = tous.filter(([,v]) => v.statut === 'CONVERTI').length;
+  document.getElementById('prospectsResume').innerHTML = `<strong>${tous.length}</strong> prospects · <strong style="color:var(--vert)">${convertis}</strong> convertis`;
+
+  const contenu = document.getElementById('contenu-prospects');
+  if (!filtres.length) {
+    contenu.innerHTML = '<div class="vide">Aucun prospect' + (filtre ? ' dans ce statut' : '') + '.<br><small>Ajoutez-en depuis la recherche.</small></div>';
+    return;
+  }
+
+  contenu.innerHTML = filtres.map(([siren, data]) => `
+    <div class="prospect-card">
+      <div class="prospect-header">
+        <div class="prospect-nom">${data.nom || siren}</div>
+        <span class="statut-btn statut-${data.statut}">${STATUTS[data.statut]}</span>
+      </div>
+      <div class="prospect-meta">
+        ${data.ville ? `<span class="tag">${data.ville}</span>` : ''}
+        ${data.naf ? `<span class="tag">${data.naf}</span>` : ''}
+        ${data.score ? `<span class="tag">${data.score}%</span>` : ''}
+        ${data.email ? `<span class="tag vert">✉️ Email dispo</span>` : ''}
+        ${data.dirigeant ? `<span class="tag bleu">👤 ${data.dirigeant}</span>` : ''}
+      </div>
+      ${data.email ? `<div style="margin-top:8px"><a href="mailto:${data.email}" style="color:var(--bleu);font-size:12px">✉️ ${data.email}</a></div>` : ''}
+      ${data.siteWeb ? `<div style="margin-top:4px"><a href="${data.siteWeb.startsWith('http') ? data.siteWeb : 'https://'+data.siteWeb}" target="_blank" style="color:var(--bleu);font-size:12px">🌐 ${data.siteWeb}</a></div>` : ''}
+      ${data.note ? `<div class="prospect-note">"${data.note}"</div>` : ''}
+      <div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap">
+        ${Object.entries(STATUTS).map(([k,v]) => `<button class="statut-opt ${data.statut===k?'sel':''}" onclick="changerStatutProspect('${siren}','${k}')">${v}</button>`).join('')}
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <a class="lien-fiche" style="font-size:11px;padding:6px 10px" href="https://annuaire-entreprises.data.gouv.fr/entreprise/${siren}" target="_blank">📋 Fiche ↗</a>
+        <button class="btn btn-outline" onclick="supprimerProspect('${siren}')" style="font-size:11px;padding:6px 10px">🗑 Retirer</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function changerStatutProspect(siren, statut) { setProspect(siren, { statut }); afficherProspects(); showToast('Statut mis à jour'); }
+function supprimerProspect(siren) { const p = getProspects(); delete p[siren]; saveProspects(p); afficherProspects(); showToast('Prospect retiré'); }
+
+// ===== EXPORT =====
+function exportCSV() {
+  if (!derniersResultats.length) { showToast('Aucun résultat'); return; }
+  const rows = [['Nom','SIREN','SIRET','NAF','Secteur','Effectif','Ville','CP','Créée','Score','Priorité','Email','Site web','Dirigeant']];
+  derniersResultats.forEach(e => {
+    const section = (e.activite_principale||'').charAt(0);
+    const prio = PRIORITE[section]?.label || '—';
+    const { score } = calculerScore(e, cacheEnrichissement[e.siren]);
+    const pappers = cacheEnrichissement[e.siren];
+    const dirig = pappers?.dirigeants?.[0];
+    rows.push([
+      e.nom_complet||'', e.siren||'', e.siege?.siret||'',
+      e.activite_principale||'', SECTION_LABEL[section]||'',
+      e.tranche_effectif_salarie||'', e.siege?.libelle_commune||'',
+      e.siege?.code_postal||'', e.date_creation||'', score+'%', prio,
+      pappers?.email || dirig?.email || '',
+      pappers?.site_web || '',
+      dirig ? `${dirig.prenom||''} ${dirig.nom||''}`.trim() : ''
+    ]);
+  });
+  telechargerCSV(rows, 'yapluca_v3_recherche.csv');
+  showToast('✅ CSV exporté');
+}
+
+function exportProspectsCSV() {
+  const p = getProspects();
+  const rows = [['Nom','SIREN','Ville','NAF','Score','Statut','Email','Site web','Dirigeant','Note','Ajouté le']];
+  Object.entries(p).filter(([,v]) => v.nom).forEach(([siren, d]) => {
+    rows.push([d.nom||'', siren, d.ville||'', d.naf||'', d.score||'',
+      STATUTS[d.statut]||'', d.email||'', d.siteWeb||'', d.dirigeant||'',
+      d.note||'', d.ajouteLe ? d.ajouteLe.slice(0,10) : '']);
+  });
+  telechargerCSV(rows, 'yapluca_v3_prospects.csv');
+  showToast('✅ Prospects exportés');
+}
+
+function telechargerCSV(rows, filename) {
+  const bom = '\uFEFF';
+  const csv = bom + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+}
+
+// ===== UTILS =====
+function changerPage(dir) { pageCourante = Math.max(1, Math.min(totalPages, pageCourante + dir)); window.scrollTo({top:0,behavior:'smooth'}); charger(); }
+let toastTimer;
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') lancerRecherche(); });
+
+// Init
+updateBadge();
+charger();
+</script>
+</body>
+</html>
