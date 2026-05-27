@@ -246,7 +246,7 @@ select:focus { outline: none; border-color: var(--rouge); }
 // ===== CONFIG =====
 const PAPPERS_KEY = '2f03bd66f50acf715cec1ee61cff3cfdffd5b649f72040a3';
 const API_INSEE = 'https://recherche-entreprises.api.gouv.fr/search';
-const API_PAPPERS = 'https://api.pappers.fr/v2/entreprise';
+const API_PAPPERS = "/api/pappers";
 const API_GEO = 'https://api-adresse.data.gouv.fr/search/';
 
 const PRIORITE = {
@@ -344,22 +344,37 @@ function scoreColor(s) {
 // ===== PAPPERS ENRICHISSEMENT =====
 async function enrichirPappers(siren) {
   if (cacheEnrichissement[siren]) return cacheEnrichissement[siren];
-  try {
-    const res = await fetch(`${API_PAPPERS}?siren=${siren}&api_token=${PAPPERS_KEY}`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    cacheEnrichissement[siren] = data;
-    // Quota
-    const remaining = res.headers.get('X-Ratelimit-Remaining');
-    if (remaining) {
-      quotaRestant = parseInt(remaining);
-      const pct = (quotaRestant / 500) * 100;
-      document.getElementById('quotaTexte').textContent = quotaRestant + '/j';
-      document.getElementById('quotaFill').style.width = pct + '%';
-      document.getElementById('quotaFill').style.background = pct > 30 ? 'var(--vert)' : 'var(--rouge)';
-    }
-    return data;
-  } catch(e) { return null; }
+
+  const TOKEN = '2f03bd66f50acf715cec1ee61cff3cfdffd5b649f72040a3';
+  const TARGET = `https://api.pappers.fr/v2/entreprise?siren=${siren}&api_token=${TOKEN}`;
+
+  // Essai 1 : appel direct (fonctionne si Pappers autorise CORS)
+  // Essai 2 : via corsproxy.io si le direct échoue
+  const urls = [
+    TARGET,
+    `https://corsproxy.io/?${encodeURIComponent(TARGET)}`
+  ];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data && (data.siren || data.nom_entreprise)) {
+        cacheEnrichissement[siren] = data;
+        const remaining = res.headers.get('X-Ratelimit-Remaining');
+        if (remaining) {
+          quotaRestant = parseInt(remaining);
+          const pct = (quotaRestant / 500) * 100;
+          document.getElementById('quotaTexte').textContent = quotaRestant + '/j';
+          document.getElementById('quotaFill').style.width = pct + '%';
+          document.getElementById('quotaFill').style.background = pct > 30 ? 'var(--vert)' : 'var(--rouge)';
+        }
+        return data;
+      }
+    } catch(e) { continue; }
+  }
+  return null;
 }
 
 // ===== TEMPLATE EMAIL =====
